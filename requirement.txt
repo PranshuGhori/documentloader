@@ -1,0 +1,45 @@
+# ── Core LLM (xAI Grok via OpenAI-compatible API) ──────────────────────────
+openai>=1.30.0                   # xAI's API is OpenAI-compatible; use this client
+
+# ── Orchestration ───────────────────────────────────────────────────────────
+langchain>=0.2.0                 # Core RAG chain abstractions
+langchain-community>=0.2.0       # Document loaders, extra retrievers
+langchain-openai>=0.1.0          # LangChain wrapper for OpenAI-compatible endpoints
+langchain-chroma>=0.1.0          # LangChain ↔ ChromaDB integration
+
+# ── Vector Store ────────────────────────────────────────────────────────────
+chromadb>=0.5.0                  # Local / persistent vector DB
+
+# ── Embeddings ──────────────────────────────────────────────────────────────
+sentence-transformers>=3.0.0     # Local embedding models (e.g. all-MiniLM-L6-v2)
+torch>=2.2.0                     # Required by sentence-transformers
+transformers>=4.40.0             # Tokenizers & model loading
+
+# ── Document Loaders ────────────────────────────────────────────────────────
+pypdf>=4.0.0                     # PDF parsing
+unstructured>=0.13.0             # HTML, DOCX, email, markdown loading
+python-docx>=1.1.0               # Word document support
+beautifulsoup4>=4.12.0           # Web page / HTML scraping
+lxml>=5.0.0                      # Fast XML/HTML parser (used by BS4)
+
+# ── Text Splitting ───────────────────────────────────────────────────────────
+tiktoken>=0.7.0                  # Token-accurate chunking (count tokens precisely)
+
+# ── Data & Config ────────────────────────────────────────────────────────────
+python-dotenv>=1.0.0             # Load XAI_API_KEY etc. from .env
+pydantic>=2.7.0                  # Data validation, schema enforcement
+numpy>=1.26.0                    # Vector arithmetic
+pandas>=2.2.0                    # Optional: structured data ingestion
+
+# ── API / Serving (optional) ─────────────────────────────────────────────────
+fastapi>=0.111.0                 # Serve your RAG pipeline as a REST API
+uvicorn[standard]>=0.29.0        # ASGI server for FastAPI
+streamlit>=1.35.0                # Quick UI for testing your RAG app
+
+# ── Evaluation ───────────────────────────────────────────────────────────────
+ragas>=0.1.12                    # RAG-specific eval metrics (faithfulness, recall)
+
+# ── Dev / Notebook ───────────────────────────────────────────────────────────
+jupyter>=1.0.0
+ipykernel>=6.29.0
+tqdm>=4.66.0                     # Progress bars during ingestion

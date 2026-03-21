@@ -1,0 +1,144 @@
+We now show that the Bernoulli and the Gaussian distributions are ex-
+amples of exponential family distributions. The Bernoulli distribution with
+mean φ, written Bernoulli(φ), specifies a distribution over y∈{0,1}, so that
+p(y = 1; φ) = φ; p(y = 0; φ) = 1−φ. As we vary φ, we obtain Bernoulli
+distributions with diﬀerent means. We now show that this class of Bernoulli
+distributions, ones obtained by varying φ, is in the exponential family; i.e.,
+that there is a choice of T, a and b so that Equation (3.1) becomes exactly
+the class of Bernoulli distributions.
+We write the Bernoulli distribution as:
+p(y; φ) = φy(1−φ)1−y
+= exp(ylog φ+ (1−y) log(1−φ))
+= exp log φ
+1−φ y+ log(1−φ).
+Thus, the natural parameter is given by η= log(φ/(1−φ)). Interestingly, if
+we invert this definition for η by solving for φ in terms of η, we obtain φ=
+1/(1 + e−η). This is the familiar sigmoid function! This will come up again
+when we derive logistic regression as a GLM. To complete the formulation
+of the Bernoulli distribution as an exponential family distribution, we also
+have
+T(y) = y
+a(η) =−log(1−φ)
+= log(1 + eη)
+b(y) = 1
+This shows that the Bernoulli distribution can be written in the form of
+Equation (3.1), using an appropriate choice of T, a and b.
+Let’s now move on to consider the Gaussian distribution. Recall that,
+when deriving linear regression, the value of σ2 had no eﬀect on our final
+choice of θand hθ(x). Thus, we can choose an arbitrary value for σ2 without
+changing anything. To simplify the derivation below, let’s set σ2 = 1.2 We
+2If we leave σ2 as a variable, the Gaussian distribution can also be shown to be in the
+exponential family, where η∈R2 is now a 2-dimension vector that depends on both µand
+σ. For the purposes of GLMs, however, the σ2 parameter can also be treated by considering
+a more general definition of the exponential family: p(y; η,τ) = b(a,τ) exp((ηTT(y)−
+a(η))/c(τ)). Here, τ is called the dispersion parameter, and for the Gaussian, c(τ) = σ2;
+but given our simplification above, we won’t need the more general definition for the
+examples we will consider here.
+28
+then have:
+p(y; µ) = 1
+√2π
+1
+exp−
+1
+2(y−µ)2
+=
+√2π
+exp−
+1
+2y2
+·exp µy−
+1
+2µ2
+Thus, we see that the Gaussian is in the exponential family, with
+η= µ
+T(y) = y
+a(η) = µ2/2
+= η2/2
+b(y) = (1/√2π) exp(−y2/2).
+There’re many other distributions that are members of the exponen-
+tial family: The multinomial (which we’ll see later), the Poisson (for mod-
+elling count-data; also see the problem set); the gamma and the exponen-
+tial (for modelling continuous, non-negative random variables, such as time-
+intervals); the beta and the Dirichlet (for distributions over probabilities);
+and many more. In the next section, we will describe a general “recipe”
+for constructing models in which y (given x and θ) comes from any of these
+distributions.
+3.2 Constructing GLMs
+Suppose you would like to build a model to estimate the number y of cus-
+tomers arriving in your store (or number of page-views on your website) in
+any given hour, based on certain features xsuch as store promotions, recent
+advertising, weather, day-of-week, etc. We know that the Poisson distribu-
+tion usually gives a good model for numbers of visitors. Knowing this, how
+can we come up with a model for our problem? Fortunately, the Poisson is an
+exponential family distribution, so we can apply a Generalized Linear Model
+(GLM). In this section, we will we will describe a method for constructing
+GLM models for problems such as these.
+More generally, consider a classification or regression problem where we
+would like to predict the value of some random variable y as a function of
+x. To derive a GLM for this problem, we will make the following three
+assumptions about the conditional distribution of y given x and about our
+model:
+29
+1. y|x; θ∼ExponentialFamily(η). I.e., given x and θ, the distribution of
+y follows some exponential family distribution, with parameter η.
+2. Given x, our goal is to predict the expected value of T(y) given x.
+In most of our examples, we will have T(y) = y, so this means we
+would like the prediction h(x) output by our learned hypothesis h to
+satisfy h(x) = E[y|x]. (Note that this assumption is satisfied in the
+choices for hθ(x) for both logistic regression and linear regression. For
+instance, in logistic regression, we had hθ(x) = p(y= 1|x; θ) = 0·p(y=
+0|x; θ) + 1·p(y= 1|x; θ) = E[y|x; θ].)
+3. The natural parameter ηand the inputs xare related linearly: η= θTx.
+(Or, if η is vector-valued, then ηi = θT
+i x.)
+The third of these assumptions might seem the least well justified of
+the above, and it might be better thought of as a “design choice” in our
+recipe for designing GLMs, rather than as an assumption per se. These
+three assumptions/design choices will allow us to derive a very elegant class
+of learning algorithms, namely GLMs, that have many desirable properties
+such as ease of learning. Furthermore, the resulting models are often very
+eﬀective for modelling diﬀerent types of distributions over y; for example, we
+will shortly show that both logistic regression and ordinary least squares can
+both be derived as GLMs.
+3.2.1 Ordinary least squares
+To show that ordinary least squares is a special case of the GLM family
+of models, consider the setting where the target variable y (also called the
+response variable in GLM terminology) is continuous, and we model the
+conditional distribution of y given x as a Gaussian N(µ,σ2). (Here, µ may
+depend x.) So, we let the ExponentialFamily(η) distribution above be
+the Gaussian distribution. As we saw previously, in the formulation of the
+Gaussian as an exponential family distribution, we had µ= η. So, we have
+hθ(x) = E[y|x; θ]
+= µ
+= η
+= θTx.
+The first equality follows from Assumption 2, above; the second equality
+follows from the fact that y|x; θ∼N(µ,σ2), and so its expected value is given
+30
+by µ; the third equality follows from Assumption 1 (and our earlier derivation
+showing that µ= η in the formulation of the Gaussian as an exponential
+family distribution); and the last equality follows from Assumption 3.
+3.2.2 Logistic regression
+We now consider logistic regression. Here we are interested in binary classifi-
+cation, so y∈{0,1}. Given that yis binary-valued, it therefore seems natural
+to choose the Bernoulli family of distributions to model the conditional dis-
+tribution of y given x. In our formulation of the Bernoulli distribution as
+an exponential family distribution, we had φ = 1/(1 + e−η). Furthermore,
+note that if y|x; θ∼Bernoulli(φ), then E[y|x; θ] = φ. So, following a similar
+derivation as the one for ordinary least squares, we get:
+hθ(x) = E[y|x; θ]
+= φ
+= 1/(1 + e−η)
+= 1/(1 + e−θTx)
+So, this gives us hypothesis functions of the form hθ(x) = 1/(1 + e−θTx). If
+you are previously wondering how we came up with the form of the logistic
+function 1/(1 + e−z), this gives one answer: Once we assume that y condi-
+tioned on xis Bernoulli, it arises as a consequence of the definition of GLMs
+and exponential family distributions.
+To introduce a little more terminology, the function g giving the distri-
+bution’s mean as a function of the natural parameter (g(η) = E[T(y); η])
+is called the canonical response function. Its inverse, g−1, is called the
+canonical link function. Thus, the canonical response function for the
+Gaussian family is just the identify function; and the canonical response
+function for the Bernoulli is the logistic function
