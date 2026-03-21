@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 from langchain_xai import ChatXAI
+from langchain_community.document_loaders import TextLoader 
+from langchain_core.prompts import ChatPromptTemplate
 
 load_dotenv()
 
@@ -9,7 +11,15 @@ model = ChatXAI(
     xai_api_key=os.getenv("XAI_API_KEY")
 )
 
-result = model.invoke("Hello, how are you?")
+loader = TextLoader("document loaders/notes.txt")
+docs = loader.load()
 
+chat = ChatPromptTemplate.from_messages([
+    ("system", "you are a helpful assistant that summarises the data comprehensively"), 
+    ("user", "{data}")
+])
+prompt = chat.format_messages(data=docs[0].page_content)
+result = model.invoke(prompt)
 print(result.content)
+
 
