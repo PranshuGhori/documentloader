@@ -1,0 +1,24 @@
+goals is to make rag project using grok 4.1 fast non reasoning model
+
+how we are going to proceed
+1. load the pdf
+2. split the pdf into chunks
+3. create embeddings for each chunk
+4. store the embeddings in a vector database
+5. when a user asks a question, create an embedding for the question
+6. find the most similar chunks to the question
+7. use the chunks to answer the question
+
+outcome
+1. user asks a question
+2. agent finds the most similar chunks to the question
+3. agent uses the chunks to answer the question
+4. agent returns the answer to the user
+
+tools
+1. grok 4.1 fast non reasoning model
+2. vector database
+3. pdf loader
+4. text splitter
+5. embeddings
+

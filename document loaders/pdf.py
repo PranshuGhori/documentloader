@@ -1,11 +1,10 @@
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import TokenTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 data = PyPDFLoader("document loaders/ps1.pdf")
 documents = data.load()
-splitter = TokenTextSplitter(
-    model_name="gpt-4",
+splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=10
 )
