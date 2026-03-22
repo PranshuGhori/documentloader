@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from langchain_xai import ChatXAI
 from langchain_community.document_loaders import TextLoader 
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.document_loaders import PyPDFLoader
 
 load_dotenv()
 
@@ -11,7 +12,7 @@ model = ChatXAI(
     xai_api_key=os.getenv("XAI_API_KEY")
 )
 
-loader = TextLoader("document loaders/notes.txt")
+loader = PyPDFLoader("document loaders/ps1.pdf")
 docs = loader.load()
 
 chat = ChatPromptTemplate.from_messages([
