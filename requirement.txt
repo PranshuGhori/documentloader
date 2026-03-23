@@ -1,5 +1,6 @@
-# ── Core LLM (xAI Grok via OpenAI-compatible API) ──────────────────────────
-openai>=1.30.0                   # xAI's API is OpenAI-compatible; use this client
+# ── Core LLM (xAI Grok) ─────────────────────────────────────────────────────
+langchain-xai>=0.2.0             # LangChain wrapper for xAI / Grok models
+openai>=1.30.0                   # xAI's API is OpenAI-compatible; also used by langchain-openai
 
 # ── Orchestration ───────────────────────────────────────────────────────────
 langchain>=0.2.0                 # Core RAG chain abstractions
@@ -38,6 +39,9 @@ streamlit>=1.35.0                # Quick UI for testing your RAG app
 
 # ── Evaluation ───────────────────────────────────────────────────────────────
 ragas>=0.1.12                    # RAG-specific eval metrics (faithfulness, recall)
+
+# ── Terminal UI ──────────────────────────────────────────────────────────────
+rich>=13.0.0                     # Beautiful terminal output for CLI (main.py)
 
 # ── Dev / Notebook ───────────────────────────────────────────────────────────
 jupyter>=1.0.0
