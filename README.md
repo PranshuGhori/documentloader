@@ -1,4 +1,4 @@
-# RAG Q&A — Powered by LLM
+# RAG Q&A — Powered by Grok Models
 
 A production-ready **Retrieval-Augmented Generation** pipeline. Ask questions about your documents and get grounded, cited answers — with streaming, conversation memory, and three interfaces to choose from.
 
