@@ -1,12 +1,10 @@
-# RAG Q&A — Powered by LLM (Grok) 
+# documentloader
 
-A production-ready **Retrieval-Augmented Generation** pipeline. Ask questions about your documents and get grounded, cited answers — with streaming, conversation memory, and three interfaces to choose from.
+Ask questions about your documents and get answers grounded in, and cited to, the retrieved pages.
 
-**Stack:** LangChain · xAI Grok · ChromaDB · OpenAI Embeddings · FastAPI · Streamlit
+LangChain, ChromaDB, OpenAI embeddings, xAI Grok. CLI, Streamlit and FastAPI front ends over one small core.
 
----
-
-## How It Works
+## How it works
 
 ```
 Documents (PDF / TXT / URL)
@@ -22,171 +20,91 @@ User question ──► embed ──► retrieve top-k
                           Grok LLM  ──►  Streaming answer + source citations
 ```
 
----
+Each retrieved chunk is shown to the model as `[Source N: file, page P]`, and the same numbering is returned with the answer, so "Source 2" in the text maps to the second citation.
 
 ## Setup
 
-### 1. Clone & create a virtual environment
-
 ```bash
-git clone https://github.com/PranshuGhori/documentloader.git
-cd documentloader
-
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env    # set XAI_API_KEY and OPENAI_API_KEY
 ```
-
-### 2. Install dependencies
-
-```bash
-pip install -r requirement.txt
-```
-
-### 3. Configure environment variables
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env`:
-
-```env
-XAI_API_KEY=your-xai-api-key
-OPENAI_API_KEY=your-openai-api-key
-```
-
-| Variable | Purpose |
-|---|---|
-| `XAI_API_KEY` | Grok LLM (answer generation) |
-| `OPENAI_API_KEY` | OpenAI `text-embedding-3-small` (retrieval) |
-
----
 
 ## Usage
 
-### Step 1 — Ingest documents
+Build the index (rebuilds by default; `--append` adds to it):
 
 ```bash
-# Default (documents/ps1.pdf)
-python create_database.py
-
-# Any PDF
-python create_database.py path/to/file.pdf
-
-# Multiple files / glob
-python create_database.py documents/*.pdf
-
-# Web URL
+python create_database.py                      # documents/ps1.pdf
+python create_database.py documents/*.pdf notes.md
 python create_database.py https://en.wikipedia.org/wiki/Retrieval-augmented_generation
 ```
 
-Only needed once — or whenever your documents change.
-
-### Step 2 — Ask questions
-
-**CLI** — streaming output, source table, conversation memory
+Then ask questions from any of the three interfaces:
 
 ```bash
-python main.py
+python main.py              # terminal chat; /clear resets memory, /exit quits
+streamlit run app.py        # browser chat
+uvicorn api:app --reload    # REST API, docs at http://localhost:8000/docs
 ```
 
-```
-╭─────────────────────────────────────────╮
-│ RAG Q&A  ·  powered by grok-...         │
-│ 42 chunks indexed · top-4 retrieval     │
-╰─────────────────────────────────────────╯
-
-You: What is this document about?
-
-Assistant
-The document covers...
-
- #  File       Page  Excerpt
- 1  ps1.pdf       1  The assignment requires...
- 2  ps1.pdf       3  Students should submit...
-```
-
-**Streamlit** — chat UI in your browser
-
-```bash
-streamlit run app.py
-```
-
-- Streaming token-by-token output
-- Expandable source citations under each answer
-- Conversation memory across turns
-- Sidebar with vector store stats
-
-**FastAPI** — REST API at `http://localhost:8000`
-
-```bash
-uvicorn api:app --reload
-```
-
-| Method | Endpoint | Description |
+| Method | Endpoint | |
 |---|---|---|
-| GET | `/health` | Liveness check |
-| GET | `/stats` | Vector store info |
-| POST | `/ask` | Blocking Q&A with sources |
-| POST | `/stream` | SSE streaming Q&A |
+| GET | `/health` | liveness |
+| GET | `/ready` | 503 until keys are set and the store has chunks |
+| GET | `/stats` | vector store info |
+| POST | `/ask` | answer with sources |
+| POST | `/stream` | answer as Server-Sent Events |
 
 ```bash
-# Blocking
-curl -X POST http://localhost:8000/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What is this document about?"}'
-
-# Streaming (Server-Sent Events)
-curl -N -X POST http://localhost:8000/stream \
-  -H "Content-Type: application/json" \
-  -d '{"question": "Summarise the key points."}'
+curl -X POST localhost:8000/ask -H "Content-Type: application/json" \
+  -d '{"question": "What is due and when?", "k": 4, "history": []}'
 ```
 
-Interactive API docs: `http://localhost:8000/docs`
+`/stream` sends `{"token": ...}` events, then `{"sources": [...], "done": true}`. Docker: `docker compose up` (mounts `./chroma_db` and `./documents`).
 
-**Docker**
+Settings come from the environment or `.env`: `MODEL`, `EMBEDDING_MODEL`, `CHUNK_SIZE` (1000), `CHUNK_OVERLAP` (200), `RETRIEVAL_K` (4), `HISTORY_TURNS` (5), `PERSIST_DIR` (`./chroma_db`).
+
+## Tests
 
 ```bash
-docker-compose up
+pip install -r requirements-dev.txt
+pytest
+ruff check .
 ```
 
----
+The tests run offline: a deterministic hashing embedder over a temporary Chroma store, and a fake LLM. They cover chunking, retrieval, prompt and citation assembly, conversation memory, the API (including SSE) and error paths.
 
-## Project Structure
+## Retrieval eval
 
-```
-.
-├── rag/                     # Shared core package
-│   ├── config.py            # All settings (models, paths, chunk size)
-│   ├── chain.py             # retrieve / answer / stream_answer / stats
-│   └── ingest.py            # Multi-format document loader
-│
-├── create_database.py       # Ingestion CLI (PDF, TXT, URL, glob)
-├── main.py                  # Rich terminal interface
-├── api.py                   # FastAPI REST + SSE streaming
-├── app.py                   # Streamlit chat UI
-│
-├── documents/               # Drop your source files here
-│   └── ps1.pdf
-├── chroma_db/               # Persisted vector store (gitignored)
-│
-├── Dockerfile
-├── docker-compose.yml
-├── requirement.txt
-├── .env.example
-└── .env                     # API keys (gitignored)
+`eval/questions.jsonl` has 14 questions about the sample document, each labelled with the page that answers it. The script indexes the document into a temporary store and checks where that page first appears in the top-k chunks.
+
+```bash
+python -m eval.run_eval -v                    # offline hashing embedder
+python -m eval.run_eval --embedder openai     # text-embedding-3-small, needs OPENAI_API_KEY
 ```
 
----
+Offline baseline (hashing embedder, chunk 1000 / overlap 200, k=4):
 
-## Configuration
-
-All tunable via environment variables (or `.env`):
-
-| Variable | Default | Description |
+| hit@1 | hit@4 | MRR@4 |
 |---|---|---|
-| `MODEL` | `grok-4-fast-non-reasoning` | Grok model for generation |
-| `CHUNK_SIZE` | `1000` | Characters per chunk |
-| `CHUNK_OVERLAP` | `200` | Overlap between chunks |
-| `RETRIEVAL_K` | `4` | Number of chunks retrieved per query |
-| `PERSIST_DIR` | `./chroma_db` | Vector store location |
+| 0.500 | 0.786 | 0.619 |
+
+This is a lexical floor, not the configured system. The OpenAI embedder has not been measured here.
+
+## Layout
+
+```
+rag/
+  config.py          settings and validation
+  ingest.py          load, split, index
+  chain.py           retrieve / answer / stream_answer / format_sources
+  embeddings.py      OpenAI embeddings and the offline hashing embedder
+create_database.py   ingestion CLI
+main.py              terminal chat
+app.py               Streamlit chat
+api.py               FastAPI + SSE
+eval/                retrieval questions and hit@k / MRR script
+tests/               offline pytest suite
+documents/ps1.pdf    sample document (CS229 problem set 1)
+```

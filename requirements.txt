@@ -1,0 +1,23 @@
+# LLM + embeddings
+langchain-core>=0.3
+langchain-xai>=0.2
+langchain-openai>=0.2
+
+# Retrieval
+langchain-chroma>=0.2
+langchain-text-splitters>=0.3
+chromadb>=0.5
+
+# Document loaders
+langchain-community>=0.3
+pypdf>=4.0
+beautifulsoup4>=4.12
+
+# Interfaces
+fastapi>=0.111
+uvicorn[standard]>=0.29
+streamlit>=1.35
+rich>=13.0
+
+python-dotenv>=1.0
+pydantic>=2.7
